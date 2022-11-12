@@ -1,0 +1,20 @@
+﻿<Window x:Class="NetDock.Demo.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NetDock.Demo" xmlns:netdock="clr-namespace:NetDock;assembly=NetDock"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+
+        <Label HorizontalAlignment="Center"  VerticalAlignment="Center" FontSize="88">background test label</Label>
+
+
+        <netdock:DockSurface x:Name="dockSurface"></netdock:DockSurface>
+
+        <Button Content="A" Margin="0,0,55,10" HorizontalAlignment="Right" Width="40" Height="22" VerticalAlignment="Bottom" Click="A"/>
+        <Button Content="B" Margin="0,0,10,10" HorizontalAlignment="Right" Width="40" Height="22" VerticalAlignment="Bottom" Click="B"/>
+        <Button Content="www" Margin="0,0,129,10" HorizontalAlignment="Right" Width="40" Height="22" VerticalAlignment="Bottom" Click="OpenWindow"/>
+    </Grid>
+</Window>
