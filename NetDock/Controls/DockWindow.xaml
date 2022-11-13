@@ -5,8 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NetDock"
         mc:Ignorable="d"
-        Title="DockWindow" Height="450" Width="800">
-    <Grid>
-        <local:DockSurface></local:DockSurface>
+        Title="DockWindow" Height="450" Width="800" x:Name="myWindow">
+    <Grid x:Name="grid">
     </Grid>
 </Window>

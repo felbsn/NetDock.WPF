@@ -3,9 +3,14 @@ using NetDock.Enums;
 using NetDock.Util;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -16,6 +21,11 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
+using Brush = System.Windows.Media.Brush;
+using Brushes = System.Windows.Media.Brushes;
+using Point = System.Windows.Point;
+using Rectangle = System.Windows.Shapes.Rectangle;
 
 namespace NetDock
 {
@@ -24,6 +34,8 @@ namespace NetDock
     /// </summary>
     public partial class DockSurface : UserControl
     {
+        public static HashSet<DockSurface> Surfaces = new HashSet<DockSurface>();
+
         public int SplitterSize = 3;
 
         public Brush SplitBrush = Brushes.Transparent;
@@ -45,7 +57,67 @@ namespace NetDock
             InitializeComponent();
             InitAnimations();
             DockWindow.WindowMoved += WindowMoving;
+
+            Loaded += (s, e) =>
+            {
+                Debug.WriteLine("+dock area loaded");
+                Surfaces.Add(this);
+            };
+
+            Unloaded += (s, e) =>
+            {
+                Debug.WriteLine("-dock area unloaded");
+                Surfaces.Remove(this);
+            };
         }
+
+
+
+        int zindex = DockWindow.GetZ();
+        public Window Window { get; set; }
+
+        protected override void OnVisualParentChanged(DependencyObject oldParent)
+        {
+            base.OnVisualParentChanged(oldParent);
+
+            FrameworkElement elm = this;
+            while (elm.Parent != null)
+            {
+
+                if (elm.Parent as FrameworkElement != null)
+                    elm = elm.Parent as FrameworkElement;
+                else
+                {
+                    _ = 1;
+                }
+            }
+
+            if (Window != null)
+            {
+                Window.Activated -= OnWindowActivated;
+                Window = null;
+                Debug.WriteLine("removing from window");
+            }
+
+            if (elm is Window win)
+            {
+                Window = win;
+                Window.Activated += OnWindowActivated;
+
+                Debug.WriteLine("adding to window");
+            }
+
+            Debug.WriteLine("bu nedir " + elm.ToString());
+            //tabStatus.Content = $"tablar im {Tabs.Count}";
+        }
+
+        public void OnWindowActivated(object? sender, EventArgs args)
+        {
+            zindex = DockWindow.GetZ();
+            tabStatus.Content = $"zindex {zindex}";
+        }
+
+
         public DockSurface(DockItem item) : this()
         {
             Add(item);
@@ -272,9 +344,10 @@ namespace NetDock
 
         private void OnContentChanged()
         {
-            tabStatus.Content = $"tablar im {Tabs.Count}"; 
+            //tabStatus.Content = $"tablar im {Tabs.Count}"; 
 
-            if(Tabs.Count == 0)
+
+            if (Tabs.Count == 0)
                 tabRowDef.Height = new GridLength(0, GridUnitType.Pixel);
 
             if (Current == null)
@@ -284,7 +357,7 @@ namespace NetDock
             }
             else
             {
-                if(Tabs.Count > 0)
+                if (Tabs.Count > 0)
                 {
                     tabRowDef.Height = new GridLength(32, GridUnitType.Pixel);
 
@@ -309,12 +382,12 @@ namespace NetDock
                             if (Current != item)
                             {
                                 item.BringIntoView();
-
                             }
                             //this.Remove(item);
                         };
                     }
-                }else
+                }
+                else
                 {
                     tabRowDef.Height = new GridLength(0, GridUnitType.Pixel);
                 }
@@ -470,26 +543,229 @@ namespace NetDock
             });
         }
 
-        public void WindowMoving(Point p, bool has)
+        static DockSurface Hovered { get; set; }
+
+        public static async void OnDockWindowMoved(DockWindow win, Point p, bool released)
         {
-            if(!has)
+            var list = Surfaces.Where(s => s.Window != win && s.Window != null && s.Visibility == Visibility.Visible).ToList();
+            list.Sort((a, b) => b.zindex - a.zindex);
+
+            foreach (var surface in list)
+            {
+                var handled = surface.HandleHover(p, released, out var pos);
+                if (handled)
+                {
+                    if (Hovered != surface)
+                    {
+                        Hovered?.HandleHoverLost();
+                        Hovered = surface;
+                    }
+
+                    if (released)
+                    {
+                        var beginW = win.Width;
+                        var beginH = win.Height;
+
+                        var beginLeft = win.Left;
+                        var beignTop = win.Top;
+
+                       
+
+                        //win.Animate(pos.x, pos.y, pos.width, pos.height);
+                        win.runAnim(pos.x, pos.y, pos.width, pos.height).ContinueWith(t => {
+                            
+
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                surface.HandleHoverLost();
+                                var child = win.grid.Children[0];
+                                win.grid.RemoveChild(child);
+                                surface.Add(new DockItem(child) , pos.direction);
+                                win.Close();
+                            });
+
+                        });
+
+                        //win.animating = true;
+
+                        //win.runAnim(pos.x, pos.y, pos.width, pos.height).ContinueWith(t =>
+                        //{
+                        //    Application.Current.Dispatcher.Invoke(() =>
+                        //    {
+                        //        win.animating = false;
+                        //        win.ResizeMode = ResizeMode.CanResize;
+                        //    });
+                        //});
+
+                    }
+
+                    break;
+                }
+            }
+
+            if (released)
+            {
+                Hovered = null;
+            }
+        }
+        public class HandlePos
+        {
+            public DockDirection direction { get; set; }
+            public double x { get; set; }
+            public double y { get; set; }
+            public double width { get; set; }
+            public double height { get; set; }
+            public double width_offset { get; set; }
+            public double height_offset { get; set; }
+
+        }
+        public bool HandleHover(Point p, bool released, out HandlePos pos)
+        {
+            pos = null;
+            //if (released )
+            //{
+            //    lblDebug.Content = "sorry";
+            //    //  Debug.WriteLine("reset");
+            //    HandleHoverLost();
+            //    return false;
+            //}
+
+            if (this.IsVisible)//&& Current != null
+            {
+                var lp = this.PointFromScreen(p);
+
+                if (lp.X > 0 && lp.Y > 0 && lp.X < ActualWidth && lp.Y < ActualHeight)
+                {
+                    //         System.Diagnostics.Debug.WriteLine("inside");
+
+
+
+
+
+                    lblDebug.Content = "Content over on me";
+                    overlay.Visibility = Visibility.Visible;
+
+                    DockDirection dir;
+                    double width_offset = 0;
+                    double height_offset = 0;
+                    double width = ActualWidth;
+                    double height = ActualHeight;
+
+                    if(Current == null)
+                    {
+                        hideAllExcept(rectAll);
+                        dir = DockDirection.Stack;
+                    }
+                    else
+                    if (lp.X < ActualWidth * .3)
+                    {
+                        if (hideAllExcept(rectLeft))
+                        {
+                            storyboard.Begin(this);
+                        }
+                        dir = DockDirection.Left;
+
+                        width = ActualWidth * 0.5;
+                        width_offset = 0;
+                    }
+                    else
+                    if (lp.Y < ActualHeight * .3)
+                    {
+                        hideAllExcept(rectTop);
+
+                        dir = DockDirection.Top;
+
+                        height = ActualHeight * 0.5;
+                        height_offset = 0;
+
+                    }
+                    else
+                    if (lp.X > ActualWidth * .7)
+                    {
+                        hideAllExcept(rectRight);
+                        dir = DockDirection.Right;
+
+                        width = ActualWidth * 0.5;
+                        width_offset = ActualWidth * 0.5;
+                    }
+                    else
+                    if (lp.Y > ActualHeight * .7)
+                    {
+                        hideAllExcept(rectBottom);
+
+                        dir = DockDirection.Bottom;
+
+                        height = ActualHeight * 0.5;
+                        height_offset = ActualHeight * 0.5;
+                    }
+                    else
+                    {
+                        hideAllExcept(rectAll);
+                        dir = DockDirection.Stack;
+                    }
+
+                    pos = new HandlePos()
+                    {
+                        direction = dir,
+                        height = height,
+                        width = width,
+                        width_offset = width_offset,
+                        height_offset = height_offset,
+                        x = p.X - lp.X + width_offset,
+                        y = p.Y - lp.Y + height_offset
+                    };
+
+                    Debug.WriteLine($"oluyor dir:{dir}");
+
+
+                    return true;
+                }
+                else
+                {
+                    Debug.WriteLine("olmadi");
+                    lblDebug.Content = "sorry";
+
+                    //          System.Diagnostics.Debug.WriteLine("reset");
+
+                    rectAll.Visibility = rectBottom.Visibility = rectTop.Visibility = rectLeft.Visibility = rectRight.Visibility = Visibility.Hidden;
+                    overlay.Visibility = Visibility.Collapsed;
+                }
+            }
+
+            return false;
+        }
+
+        public void HandleHoverLost()
+        {
+            rectAll.Visibility = rectBottom.Visibility = rectTop.Visibility = rectLeft.Visibility = rectRight.Visibility = Visibility.Hidden;
+            overlay.Visibility = Visibility.Collapsed;
+        }
+
+        public void WindowMoving(object sender, DockWindowMoveEventArgs e)
+        {
+            var p = e.Point;
+            var released = e.Released;
+
+            if (released || e.Handled)
             {
                 lblDebug.Content = "sorry";
-
-            //    System.Diagnostics.Debug.WriteLine("reset");
+                //  Debug.WriteLine("reset");
 
                 rectAll.Visibility = rectBottom.Visibility = rectTop.Visibility = rectLeft.Visibility = rectRight.Visibility = Visibility.Hidden;
                 overlay.Visibility = Visibility.Collapsed;
                 return;
             }
 
-            if (this.IsVisible && Current != null)
+            e.Handled = true;
+
+
+            if (this.IsVisible)//&& Current != null
             {
                 var lp = this.PointFromScreen(p);
 
                 if (lp.X > 0 && lp.Y > 0 && lp.X < ActualWidth && lp.Y < ActualHeight)
                 {
-           //         System.Diagnostics.Debug.WriteLine("inside");
+                    //         System.Diagnostics.Debug.WriteLine("inside");
 
                     lblDebug.Content = "Content over on me";
                     overlay.Visibility = Visibility.Visible;
@@ -526,7 +802,7 @@ namespace NetDock
                 {
                     lblDebug.Content = "sorry";
 
-          //          System.Diagnostics.Debug.WriteLine("reset");
+                    //          System.Diagnostics.Debug.WriteLine("reset");
 
                     rectAll.Visibility = rectBottom.Visibility = rectTop.Visibility = rectLeft.Visibility = rectRight.Visibility = Visibility.Hidden;
                     overlay.Visibility = Visibility.Collapsed;

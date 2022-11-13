@@ -60,7 +60,9 @@ namespace NetDock.Demo
 
         private void OpenWindow(object sender, RoutedEventArgs e)
         {
-            var win = new DockWindow();
+            //var win = new DockWindow(new DockSurface(new DockItem(new Label() { Content = "TEST " + new Random().Next(10, 100) }))); ;
+            //var win = new DockWindow(new DockSurface(new DockItem(new Label() { Content = "TEST " + new Random().Next(10, 100) }))); ;
+            var win = new DockWindow(new Label() { Content = "TEST " + new Random().Next(10, 100) });
             win.Show();
         }
     }
