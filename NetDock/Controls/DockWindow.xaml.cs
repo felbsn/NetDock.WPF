@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -50,6 +51,8 @@ namespace NetDock.Controls
 
         public bool animating = false;
 
+        public DockItem Item { get; set; }
+
         public static int GetZ()
         {
             return ++zorderx;
@@ -58,11 +61,10 @@ namespace NetDock.Controls
         protected override void OnActivated(EventArgs e)
         {
             base.OnActivated(e);
-
             zorder = GetZ();
-            Title = $"id:{id}, z:{zorder}";
-
+            Title = Item.TabName;//$"id:{id}, z:{zorder}";
         }
+
 
         Storyboard storyboard;
         DoubleAnimation growAnimationW;
@@ -72,7 +74,7 @@ namespace NetDock.Controls
         DoubleAnimation growAnimationL;
 
         TaskCompletionSource tsc;
-        public Task runAnim(double x, double y,double w, double h)
+        public Task BeginTransition(double x, double y,double w, double h)
         {
             tsc = new TaskCompletionSource();
 
@@ -94,10 +96,10 @@ namespace NetDock.Controls
 
             tsc.Task.ContinueWith((t) =>
             {
-                Application.Current.Dispatcher.Invoke(() =>
+                //todo: fix the crash if no current is given
+                Dispatcher.Invoke(() =>
                 {
                     storyboard.Stop();
-
                     WindowWidthAnimation = w;
                     WindowHeightAnimation = h;
                 });
@@ -165,7 +167,7 @@ namespace NetDock.Controls
             //storyboard.Stop(); 
         }
 
-        public DockWindow(Control content)
+        public DockWindow(DockItem item)
         {
             InitializeComponent();
             InitAnimations();
@@ -194,8 +196,6 @@ namespace NetDock.Controls
                                     var p = new Point(point.X, point.Y);
                                     DockSurface.OnDockWindowMoved(this, p, true);
                                 }
-
-                           
                             }
                             break;
                     }
@@ -206,14 +206,18 @@ namespace NetDock.Controls
                 });
             };
 
-            grid.Children.Add(content);
+            Item = item;
+            var control = item.GetDockItem();
+
+            grid.Children.Clear();
+            grid.Children.Add(control);
 
             zorder = GetZ();
-            Title = $"id:{id}, z:{zorder}";
-
-
-
+            Title = item.TabName;// $"id:{id}, z:{zorder}";
         }
+
+        //public Control Content { get; protected set; }
+
 
         const int WM_EXITSIZEMOVE = 0x0232;
 

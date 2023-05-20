@@ -13,6 +13,6 @@
             </Label.BitmapEffect>
         </Label>
 
-        <Button Content="Who is my parent" Click="Button_Click" Margin="0,0,10,10" Height="48" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="90" />
+        <Button Content="Remove" Click="Button_Click" Margin="0,0,0,16" HorizontalAlignment="Center" Width="90" Height="48" VerticalAlignment="Bottom" />
     </Grid>
 </UserControl>

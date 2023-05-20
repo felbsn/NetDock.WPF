@@ -28,13 +28,23 @@
         </Grid.RowDefinitions>
 
 
-        <StackPanel Orientation="Horizontal"   HorizontalAlignment="Left" x:Name="tab" Background="White" Height="32"   >
-            <!--<Button  Content="test test "   Foreground="Black" Style="{StaticResource ResourceKey=RoundCornerRightSelected}" ></Button>-->
-        </StackPanel>
 
-        <Grid Grid.Row="1" x:Name="grid" >
-            <Label Panel.ZIndex="99999" x:Name="tabStatus" Content="Label" HorizontalAlignment="Left" Margin="62,35,0,0" VerticalAlignment="Center" FontSize="36"/>
-        </Grid>
+        <Border BorderThickness="0 0 0 0" BorderBrush="#2000"   >
+            <StackPanel Orientation="Horizontal"   HorizontalAlignment="Left" x:Name="tab" Background="White" Height="32"   >
+                <!--<Button  Content="test test "   Foreground="Black" Style="{StaticResource ResourceKey=RoundCornerRightSelected}" ></Button>-->
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" BorderThickness="0 0 0 0" BorderBrush="#3000" CornerRadius="4"   >
+    
+
+            <Grid  x:Name="grid" >
+            </Grid>
+
+
+        </Border>
+  
+        <!--<Label Grid.RowSpan="2" Panel.ZIndex="99999" x:Name="tabStatus" Content="Label" HorizontalAlignment="Left" Margin="62,35,0,0" VerticalAlignment="Center" FontSize="36"/>-->
 
 
         <Grid Grid.RowSpan="2" x:Name="overlay" Visibility="Collapsed">
@@ -50,13 +60,11 @@
 
             <Label Grid.ColumnSpan="2" Grid.RowSpan="2" x:Name="lblDebug" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="14"></Label>
 
-            <Rectangle Margin="4" Visibility="Hidden"  Fill="Purple" x:Name="rectLeft" Opacity="0.3"    Grid.RowSpan="2"   >
-
-            </Rectangle>
-            <Rectangle Visibility="Hidden" x:Name="rectTop"    Fill="Purple" Grid.ColumnSpan="2"  ></Rectangle>
-            <Rectangle Visibility="Hidden" x:Name="rectRight"  Fill="Purple"   Grid.Column="1"  Grid.RowSpan="2" Opacity="0.3" ></Rectangle>
-            <Rectangle Visibility="Hidden" x:Name="rectBottom" Fill="Purple" Grid.Row="1" Grid.ColumnSpan="2"  Opacity="0.3" ></Rectangle>
-            <Rectangle Visibility="Hidden" x:Name="rectAll" Fill="Purple" Grid.RowSpan="2"  Grid.ColumnSpan="2"  Opacity="0.3" ></Rectangle>
+            <Rectangle RadiusX="6" RadiusY="6" Margin="2" Visibility="Hidden" x:Name="rectLeft"   Fill="DodgerBlue" Opacity="0.3" Grid.RowSpan="2"></Rectangle>
+            <Rectangle RadiusX="6" RadiusY="6" Margin="2" Visibility="Hidden" x:Name="rectTop"    Fill="DodgerBlue" Opacity="0.3" Grid.ColumnSpan="2"></Rectangle>
+            <Rectangle RadiusX="6" RadiusY="6" Margin="2" Visibility="Hidden" x:Name="rectRight"  Fill="DodgerBlue" Opacity="0.3" Grid.Column="1" Grid.RowSpan="2"></Rectangle>
+            <Rectangle RadiusX="6" RadiusY="6" Margin="2" Visibility="Hidden" x:Name="rectBottom" Fill="DodgerBlue" Opacity="0.3" Grid.Row="1" Grid.ColumnSpan="2"></Rectangle>
+            <Rectangle RadiusX="6" RadiusY="6" Margin="2" Visibility="Hidden" x:Name="rectAll"    Fill="DodgerBlue" Opacity="0.3" Grid.RowSpan="2" Grid.ColumnSpan="2"></Rectangle>
         </Grid>
     </Grid>
 </UserControl>

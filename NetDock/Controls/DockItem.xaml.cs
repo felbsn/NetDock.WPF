@@ -1,4 +1,5 @@
 ﻿using NetDock.Interfaces;
+using NetDock.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,23 +15,32 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace NetDock.Controls
+namespace NetDock.Controls;
+
+/// <summary>
+/// Interaction logic for DockItem.xaml
+/// </summary>
+public partial class DockItem : UserControl, IDockItem
 {
-    /// <summary>
-    /// Interaction logic for DockItem.xaml
-    /// </summary>
-    public partial class DockItem : UserControl, IDockItem
+    public DockItem(FrameworkElement element)
     {
-        public DockItem(UIElement element)
-        {
-            InitializeComponent();
-            grid.Children.Add(element);
+        InitializeComponent();
+        grid.Children.Add(element);
+        DockContent = element;
+    }
 
-            DockContent = element;
-        }
+    public string TabName { get;set; }
+    public FrameworkElement DockContent { get; set; }
+    public DockSurface Surface { get; set; }
 
-        public string TabName { get;set; }
-        public UIElement DockContent { get; set; }
-        public DockSurface Surface { get; set; }
+    internal FrameworkElement GetDockItem()
+    {
+        if (DockContent == null)
+            throw new Exception("DockItem should contain a DockContent element");
+
+        if (DockContent.Parent != null)
+            DockContent.Parent.RemoveChild(DockContent);
+
+        return DockContent;
     }
 }

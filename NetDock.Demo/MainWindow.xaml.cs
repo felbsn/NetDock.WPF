@@ -31,38 +31,62 @@ namespace NetDock.Demo
 
         private void A(object sender, RoutedEventArgs e)
         {
-            //var item = new DockPanel();
-            //item.TabName = "Test " + count++;
+            var name = "Right:" + count++;
 
-            var demo = new DemoContent();
-            demo.Content = "Test Right" + count++;
-            var item = new DockItem(demo);
+            var demo = new DemoContent()
+            {
+                Content = name
+            };
+
+            var item = new DockItem(demo)
+            {
+                TabName = name
+            };
+
             demo.Item = item;
-            item.TabName = demo.Content;
+
             dockSurface.Add(item);
-           
-     
-            // dockArea.Panel.Add(demo, DockDirection.Right);
-
-
-            //dockArea.AddItem(item);
         }
 
         private void B(object sender, RoutedEventArgs e)
         {
-            var demo = new DemoContent();
-            demo.Content = "Test Bottom" + count++;
-            var item = new DockItem(demo);
+            var name = "Bottom:" + count++;
+
+            var demo = new DemoContent()
+            {
+                Content = name
+            };
+
+            var item = new DockItem(demo)
+            {
+                TabName = name
+            };
+
             demo.Item = item;
-            item.TabName = demo.Content;
-            dockSurface.Add(item, DockDirection.Bottom);
+
+            dockSurface.Add(item , DockDirection.Bottom);
         }
 
         private void OpenWindow(object sender, RoutedEventArgs e)
         {
-            //var win = new DockWindow(new DockSurface(new DockItem(new Label() { Content = "TEST " + new Random().Next(10, 100) }))); ;
-            //var win = new DockWindow(new DockSurface(new DockItem(new Label() { Content = "TEST " + new Random().Next(10, 100) }))); ;
-            var win = new DockWindow(new Label() { Content = "TEST " + new Random().Next(10, 100) });
+            var b = new SolidColorBrush();
+                b.Color = Color.FromRgb((byte)Random.Shared.Next(255), (byte)Random.Shared.Next(255), (byte)Random.Shared.Next(255));
+
+            var id = new Random().Next(10, 100);
+            var label = new Label() { Content = "Content for " + id, Background = b };
+            label.FontSize = 32;
+            label.HorizontalContentAlignment = HorizontalAlignment.Center;
+            label.VerticalContentAlignment = VerticalAlignment.Center;
+            
+
+            var di = new DockItem(label) { TabName = "Title for " + id };
+            var win = new DockWindow(di);
+
+            label.MouseDoubleClick += (s, e) =>
+            {
+                di.Surface?.Remove(di);
+            };
+
             win.Show();
         }
     }

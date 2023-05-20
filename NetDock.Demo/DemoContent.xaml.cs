@@ -58,10 +58,7 @@ namespace NetDock.Demo
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            Item.Surface.Remove(Item);
-            //var parent = ((this.Parent as Grid).Parent as Border).Parent;
-
-            _ = 12;
+            Item.Surface?.Remove(Item);
         }
     }
 }
