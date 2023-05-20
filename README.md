@@ -2,7 +2,7 @@
 a modern docking windows approach for WPF
 
  [![NetDock Demo](https://i.ytimg.com/vi/RXwcplshrpo/maxresdefault.jpg)](https://www.youtube.com/watch?v=RXwcplshrpo)
- (click to image to watch library in [action](https://www.youtube.com/watch?v=RXwcplshrpo) or action before the second action )
+ (click to image to watch library in [action](https://www.youtube.com/watch?v=RXwcplshrpo) or action before the second action)
  
  ## Usage in XAML
  
